@@ -1,21 +1,44 @@
-name: Reusable Workflow
-## Alteração do tipo de gatilho
 on:
-  workflow_call:
-    inputs:
-      node:
-        required: true
-        type: string
-jobs: 
+    workflow_call:
+      inputs:
+         node:
+            required:  true
+            type:  string
 
-  build:
-  
+jobs:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
-    
     steps:
-    
-      - uses: actions/checkout@v3
-      
-      - name: Output the input value
-        run: |
-         echo "The node version to use is: ${{ inputs.node }}"
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  tests:
+    name: Tests with Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run test:coverage
+
+  e2e:
+    name: E2E Tests with Playwright
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e        
